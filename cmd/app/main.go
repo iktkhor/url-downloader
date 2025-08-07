@@ -1,6 +1,9 @@
-package app
+package main
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 var tasks [3]*Task
 
@@ -10,31 +13,33 @@ type Task struct {
 }
 
 func main() {
+	router := http.NewServeMux()
 	
-	http.HandleFunc("/task", createTaskHandler)
-	http.HandleFunc("/task/{id}/status", statusTaskHandler)
-	http.HandleFunc("/task/{id}/load", loadTaskHandler)
+	router.HandleFunc("POST /task", PostTaskHandler)
+	router.HandleFunc("GET /task/{id}/status", StatusTaskHandler)
+	router.HandleFunc("POST /task/{id}/load", LoadTaskHandler)
 
-}
-
-func createTaskHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-
-	default:
-	
+	server := http.Server{
+		Addr: ":8080",
+		Handler: router,
 	}
+
+	fmt.Println("Server listening")
+	server.ListenAndServe()
 }
 
-func postTask(w http.ResponseWriter, r *http.Request) error {
-	
+
+func PostTaskHandler(w http.ResponseWriter, r *http.Request){
+	fmt.Println("PostTask")
 }
 
-func statusTaskHandler(w http.ResponseWriter, r *http.Request) {
+func StatusTaskHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("StatusTask")
 
+	id := r.PathValue("id")
+	w.Write([]byte("request for id: " + id))
 }
 
-func loadTaskHandler(w http.ResponseWriter, r *http.Request) {
-
+func LoadTaskHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("LoadTask")
 }
-
