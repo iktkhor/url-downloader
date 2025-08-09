@@ -6,19 +6,19 @@ import (
 )
 
 func (h *Handler) PostTaskHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("PostTask")
-	h.s.AddTask()
-	
+	if err := h.s.AddTask(); err != nil {
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusTooManyRequests)
+	}
 }
 
 func (h *Handler) LoadTaskHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("LoadTask")
+	
+
 }
 
 func (h *Handler) StatusTaskHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("StatusTask")
-
 	id := r.PathValue("id")
 	w.Write([]byte("request for id: " + id))
 }
-

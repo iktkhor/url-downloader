@@ -22,7 +22,7 @@ type Store struct {
 
 func New() *Store {
 	return &Store{
-		tasks: make([]*Task, maxTasks),
+		tasks: make([]*Task, 0, maxTasks),
 	}
 }
 
@@ -30,14 +30,18 @@ func (s *Store) AddTask() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	i, err := s.FindIndex()
-	if err != nil {
-		return err
+	// i, err := s.FindIndex()
+	// if err != nil {
+	// 	return err
+	// }
+	if len(s.tasks) == maxTasks {
+		return &IndexError{}
 	}
 
-	s.tasks[i] = &Task{
+	s.tasks = append(s.tasks, &Task{
 		status: http.StatusCreated,
-	}
+		urls: make([]string, 0),
+	})
 
 	fmt.Println("Add new Task to slice")
 

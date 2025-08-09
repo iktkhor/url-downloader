@@ -32,11 +32,11 @@ func (a *App) Run() error {
 		Handler: router,
 	}
 
+	fmt.Println("Server listening")
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal()
 	}
 
-	fmt.Println("Server listening")
 
 	return nil
 }
