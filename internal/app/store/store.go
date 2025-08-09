@@ -12,7 +12,7 @@ type IndexError struct {
 }
 
 func (e *IndexError) Error() string {
-	return fmt.Sprintf("Couldn't find free slot. Max size of tasks is %d", maxTasks)
+	return fmt.Sprintf("Couldn't find free slot for task.\nMax size of tasks is %d", maxTasks)
 }
 
 type Store struct {

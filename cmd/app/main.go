@@ -1,30 +1,15 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
+	"log"
 
-	"github.com/iktkhor/url-downloader/internal/app/handler"
-	"github.com/iktkhor/url-downloader/internal/app/store"
+	"github.com/iktkhor/url-downloader/internal/pkg/app"
 )
 
-
-
-
 func main() {
-	store := store.New()
-	handler := handler.New(store)
-	router := http.NewServeMux()
-	
-	router.HandleFunc("POST /task", handler.PostTaskHandler)
-	router.HandleFunc("GET /task/{id}/status", handler.StatusTaskHandler)
-	router.HandleFunc("POST /task/{id}/load", handler.LoadTaskHandler)
+	a := app.New()
 
-	server := http.Server{
-		Addr: ":8080",
-		Handler: router,
+	if err := a.Run(); err != nil {
+		log.Fatal(err)
 	}
-
-	fmt.Println("Server listening")
-	server.ListenAndServe()
 }
