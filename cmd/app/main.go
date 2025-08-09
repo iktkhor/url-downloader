@@ -3,21 +3,22 @@ package main
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/iktkhor/url-downloader/internal/app/handler"
+	"github.com/iktkhor/url-downloader/internal/app/store"
 )
 
-var tasks [3]*Task
 
-type Task struct {
-	maxURL int
-	urls [3]string
-}
+
 
 func main() {
+	store := store.New()
+	handler := handler.New(store)
 	router := http.NewServeMux()
 	
-	router.HandleFunc("POST /task", PostTaskHandler)
-	router.HandleFunc("GET /task/{id}/status", StatusTaskHandler)
-	router.HandleFunc("POST /task/{id}/load", LoadTaskHandler)
+	router.HandleFunc("POST /task", handler.PostTaskHandler)
+	router.HandleFunc("GET /task/{id}/status", handler.StatusTaskHandler)
+	router.HandleFunc("POST /task/{id}/load", handler.LoadTaskHandler)
 
 	server := http.Server{
 		Addr: ":8080",
@@ -26,20 +27,4 @@ func main() {
 
 	fmt.Println("Server listening")
 	server.ListenAndServe()
-}
-
-
-func PostTaskHandler(w http.ResponseWriter, r *http.Request){
-	fmt.Println("PostTask")
-}
-
-func StatusTaskHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("StatusTask")
-
-	id := r.PathValue("id")
-	w.Write([]byte("request for id: " + id))
-}
-
-func LoadTaskHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("LoadTask")
 }
