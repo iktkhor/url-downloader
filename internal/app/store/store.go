@@ -26,7 +26,7 @@ func New() *Store {
 	}
 }
 
-func (s *Store) AddTask(t Task) error {
+func (s *Store) AddTask() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -38,6 +38,8 @@ func (s *Store) AddTask(t Task) error {
 	s.tasks[i] = &Task{
 		status: http.StatusCreated,
 	}
+
+	fmt.Println("Add new Task to slice")
 
 	return nil
 }

@@ -19,7 +19,7 @@ func New(s *store.Store) *Handler {
 
 func (h *Handler) PostTaskHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("PostTask")
-
+	h.s.AddTask()
 	
 }
 
