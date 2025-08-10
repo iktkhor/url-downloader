@@ -2,7 +2,7 @@ package handler
 
 import "net/http"
 
-func (h *Handler) Routes() http.Handler {
+func (h *Handler) Router() http.Handler {
 	router := http.NewServeMux()
 	
 	router.HandleFunc("POST /task", h.PostTaskHandler)

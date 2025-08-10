@@ -4,12 +4,18 @@ import (
 	"github.com/iktkhor/url-downloader/internal/app/store"
 )
 
-type Handler struct {
-	s *store.Store
+type Service interface {
+	DownloadFromURLs([]string) error
 }
 
-func New(s *store.Store) *Handler {
+type Handler struct {
+	s *store.Store
+	svc Service
+}
+
+func New(s *store.Store, svc Service) *Handler {
 	return &Handler{
 		s: s,
+		svc: svc,
 	}
 }

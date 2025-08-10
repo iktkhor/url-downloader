@@ -1,6 +1,8 @@
 package store
 
-import "fmt"
+import (
+	"net/http"
+)
 
 const maxURLs = 3
 
@@ -9,10 +11,9 @@ type Task struct {
 	urls   []string
 }
 
-func (t *Task) AddURL(URL string) {
-	fmt.Println("Add URL")
-
-	if len(t.urls) == maxURLs {
-
+func NewTask() *Task {
+	return &Task{
+		status: http.StatusCreated,
+		urls: make([]string, 0, maxURLs),
 	}
 }
