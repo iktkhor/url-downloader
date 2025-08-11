@@ -1,11 +1,12 @@
 package handler
 
 import (
+	"github.com/iktkhor/url-downloader/internal/app/service"
 	"github.com/iktkhor/url-downloader/internal/app/store"
 )
 
 type Service interface {
-	DownloadFromURLs([]string) error
+	DownloadFromURLs([]string) ([]service.DownloadedFile, []error)
 }
 
 type Handler struct {
