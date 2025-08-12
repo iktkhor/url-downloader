@@ -76,6 +76,7 @@ func downloadFile(url string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	http.Handle("/files/", http.StripPrefix("/files/", http.FileServer(http.Dir("files"))))
 	return buf.Bytes(), nil
 }
 
@@ -104,25 +105,3 @@ func createZipFromMemory(files []DownloadedFile, zipPath string) error {
 
 	return os.WriteFile(zipPath, buf.Bytes(), 0644)
 }
-
-// func downloadFile(URL string, filename string, e *LoadErrors) {
-// 	resp, err := http.Get(URL)
-// 	if err != nil {
-// 		e.AddError(err)
-// 		return
-// 	}
-// 	defer resp.Body.Close()
-	
-// 	file, err := os.Create(filename)
-// 	if err != nil {
-// 		e.AddError(err)
-// 		return
-// 	}
-// 	defer file.Close()
-
-// 	_, err = io.Copy(file, resp.Body)
-// 	if err != nil {
-// 		e.AddError(err)
-// 		return
-// 	}
-// }
