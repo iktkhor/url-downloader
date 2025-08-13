@@ -1,12 +1,10 @@
 package service
 
 import (
-	"archive/zip"
 	"bytes"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"sync"
 )
 
@@ -33,18 +31,18 @@ func New() *Service {
 	return &Service{}
 }
 
-func (s *Service) DownloadFromURLs(URLs []string) ([]DownloadedFile, []error) {
+func (s *Service) DownloadFromURLs(URLs []string, taskIndex int) ([]DownloadedFile, []error) {
 	wg := sync.WaitGroup{}
 	e := &LoadErrors{}
 	files := make([]DownloadedFile, len(URLs))
 
 	for i, v := range URLs {
 		wg.Add(1)
-		filename := fmt.Sprintf("image%d.jpeg", i + 1)
+		filename := fmt.Sprintf("task_%d_file_%d.%s", taskIndex + 1, i, "jpeg")
 
 		go func() {
 			defer wg.Done()
-			data, err := downloadFile(v)
+			data, err := s.downloadFile(v)
 			if err != nil {
 	 			e.AddError(err)
 				return
@@ -64,7 +62,7 @@ func (s *Service) DownloadFromURLs(URLs []string) ([]DownloadedFile, []error) {
 	return files, e.errors
 }
 
-func downloadFile(url string) ([]byte, error) {
+func (s *Service) downloadFile(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -76,32 +74,32 @@ func downloadFile(url string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	http.Handle("/files/", http.StripPrefix("/files/", http.FileServer(http.Dir("files"))))
+	//http.Handle("/files/", http.StripPrefix("/files/", http.FileServer(http.Dir("files"))))
 	return buf.Bytes(), nil
 }
 
 // createZipFromMemory — архивирует данные из памяти в ZIP
-func createZipFromMemory(files []DownloadedFile, zipPath string) error {
-	var buf bytes.Buffer
-	zipWriter := zip.NewWriter(&buf)
+// func createZipFromMemory(files []DownloadedFile, zipPath string) error {
+// 	var buf bytes.Buffer
+// 	zipWriter := zip.NewWriter(&buf)
 
-	for _, file := range files {
-		if len(file.Data) == 0 {
-			continue // пропускаем пустые (ошибочные) скачивания
-		}
-		f, err := zipWriter.Create(file.Name)
-		if err != nil {
-			return err
-		}
-		_, err = f.Write(file.Data)
-		if err != nil {
-			return err
-		}
-	}
+// 	for _, file := range files {
+// 		if len(file.Data) == 0 {
+// 			continue // пропускаем пустые (ошибочные) скачивания
+// 		}
+// 		f, err := zipWriter.Create(file.Name)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		_, err = f.Write(file.Data)
+// 		if err != nil {
+// 			return err
+// 		}
+// 	}
 
-	if err := zipWriter.Close(); err != nil {
-		return err
-	}
+// 	if err := zipWriter.Close(); err != nil {
+// 		return err
+// 	}
 
-	return os.WriteFile(zipPath, buf.Bytes(), 0644)
-}
+// 	return os.WriteFile(zipPath, buf.Bytes(), 0644)
+// }

@@ -27,44 +27,47 @@ func New() *Store {
 	}
 }
 
-func (s *Store) AddTask() error {
+// Function for post task, returns index and error
+func (s *Store) AddTask() (int, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	if s.currentStoreLen() == maxTasks {
-		return &IndexError{}
+		return 0, &IndexError{}
 	}
 
 	s.tasks = append(s.tasks, NewTask())
 
-	s.currTasks++
+	s.incStoreLen()
 
-	return nil
+	return s.currentStoreLen() - 1, nil
 }
 
+// Add url to task by index
 func (s *Store) AddTaskURL(taskIndex int, URL string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	
-    if !s.isTaskIndexCorrect(taskIndex) {
-        return errors.New("task index not found")
+    task, err := s.getTask(taskIndex)
+    if err != nil {
+        return err
     }
-
-	task := s.tasks[taskIndex]
+		
 	task.urls = append(task.urls, URL)
 
 	return nil
 }
 
+// Get Task URLs copied slice
 func (s *Store) GetTaskURLs(taskIndex int) ([]string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	
-    if !s.isTaskIndexCorrect(taskIndex) {
-        return nil, errors.New("task index not found")
+    task, err := s.getTask(taskIndex)
+    if err != nil {
+        return nil, err
     }
 
-	task := s.tasks[taskIndex]
 	res := make([]string, len(task.urls))
 	copy(res, task.urls)
 
@@ -75,11 +78,10 @@ func (s *Store) GetTaskStatus(taskIndex int) (int, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-    if !s.isTaskIndexCorrect(taskIndex) {
-        return 0, errors.New("task index not found")
+    task, err := s.getTask(taskIndex)
+    if err != nil {
+        return 0, err
     }
-
-	task := s.tasks[taskIndex]
 
 	return task.status, nil
 }
@@ -88,14 +90,23 @@ func (s *Store) SetTaskStatus(taskIndex int, status int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-    if !s.isTaskIndexCorrect(taskIndex) {
-        return errors.New("task index not found")
+    task, err := s.getTask(taskIndex)
+    if err != nil {
+        return err
     }
 
-	task := s.tasks[taskIndex]
 	task.status = status
+	s.decStoreLen()
 
 	return nil
+}
+
+// private function get Task by index, requires correct input
+func (s *Store) getTask(taskIndex int) (*Task, error) {
+    if !s.isTaskIndexCorrect(taskIndex) {
+        return nil, errors.New("task index not found")
+    }
+    return s.tasks[taskIndex], nil
 }
 
 // Function returns number of current tasks
@@ -103,6 +114,15 @@ func (s *Store) currentStoreLen() int {
 	return s.currTasks
 }
 
+func (s *Store) incStoreLen() {
+	s.currTasks++
+}
+
+func (s *Store) decStoreLen() {
+	s.currTasks--
+}
+
+// Check if index is correct
 func (s *Store) isTaskIndexCorrect(taskIndex int) bool {
 	if taskIndex < 0 || taskIndex >= len(s.tasks) {
         return false
@@ -111,6 +131,7 @@ func (s *Store) isTaskIndexCorrect(taskIndex int) bool {
 	return true
 }
 
+// Check if task stores max number of urls
 func (s *Store) IsTaskURLsMax(taskIndex int) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()

@@ -6,7 +6,7 @@ import (
 )
 
 type Service interface {
-	DownloadFromURLs([]string) ([]service.DownloadedFile, []error)
+	DownloadFromURLs([]string, int) ([]service.DownloadedFile, []error)
 }
 
 type Handler struct {
