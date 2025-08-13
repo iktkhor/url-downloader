@@ -74,11 +74,12 @@ func (h *Handler) LoadTaskHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	
 		w.Write([]byte(""))
-		fmt.Fprintf(w, "Success! Files added to zip\nURL for downloading: /files/%s", archiveName)
+		fmt.Fprintf(w, "Done! Files added to zip\nURL for downloading: %s/files/%s", fmt.Sprintf("%s:%d", h.cfg.Host, h.cfg.Port), archiveName)
 		
 		fmt.Println(archivePath)
 
 		h.s.SetTaskStatus(id, http.StatusOK)
+		h.s.DecActiveTasksLen()
 	}
 }
 

@@ -18,7 +18,7 @@ func (e *IndexError) Error() string {
 type Store struct {
 	mu    sync.Mutex
 	tasks []*Task
-	currTasks int // Number of current tasks executed in programm
+	activeTasks int // Number of current tasks executed in programm
 }
 
 func New() *Store {
@@ -32,15 +32,15 @@ func (s *Store) AddTask() (int, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if s.currentStoreLen() == maxTasks {
+	if s.activeTasksLen() == maxTasks {
 		return 0, &IndexError{}
 	}
 
 	s.tasks = append(s.tasks, NewTask())
 
-	s.incStoreLen()
+	s.incActiveTasksLen()
 
-	return s.currentStoreLen() - 1, nil
+	return len(s.tasks) - 1, nil
 }
 
 // Add url to task by index
@@ -96,7 +96,6 @@ func (s *Store) SetTaskStatus(taskIndex int, status int) error {
     }
 
 	task.status = status
-	s.decStoreLen()
 
 	return nil
 }
@@ -110,16 +109,16 @@ func (s *Store) getTask(taskIndex int) (*Task, error) {
 }
 
 // Function returns number of current tasks
-func (s *Store) currentStoreLen() int {
-	return s.currTasks
+func (s *Store) activeTasksLen() int {
+	return s.activeTasks
 }
 
-func (s *Store) incStoreLen() {
-	s.currTasks++
+func (s *Store) incActiveTasksLen() {
+	s.activeTasks++
 }
 
-func (s *Store) decStoreLen() {
-	s.currTasks--
+func (s *Store) DecActiveTasksLen() {
+	s.activeTasks--
 }
 
 // Check if index is correct

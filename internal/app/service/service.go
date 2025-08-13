@@ -1,6 +1,7 @@
 package service
 
 import (
+	"slices"
 	"bytes"
 	"fmt"
 	"io"
@@ -89,10 +90,5 @@ func (s *Service) downloadFile(url string) ([]byte, error) {
 
 func isValidFile(filename string) bool {
 	ext := strings.ToLower(path.Ext(filename))
-	for _, allowed := range allowedExtensions {
-		if ext == allowed {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(allowedExtensions, ext)
 }
