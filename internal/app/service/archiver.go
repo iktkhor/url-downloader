@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-// SaveFilesAsZip создает zip-архив из списка файлов
+// Create zip archive from files
 func SaveFilesAsZip(files []DownloadedFile, archivePath string) error {
 	f, err := os.Create(archivePath)
 	if err != nil {
@@ -31,7 +31,7 @@ func SaveFilesAsZip(files []DownloadedFile, archivePath string) error {
 	return nil
 }
 
-// addFileToZip добавляет один файл в zip-архив
+// add 1 file to zip
 func addFileToZip(zipWriter *zip.Writer, file DownloadedFile) error {
 	w, err := zipWriter.Create(filepath.Base(file.Name))
 	if err != nil {

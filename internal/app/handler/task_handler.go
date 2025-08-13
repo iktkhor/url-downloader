@@ -85,11 +85,10 @@ func (h *Handler) LoadTaskHandler(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) downloadFiles(w http.ResponseWriter, taskIndex int, archivePath string) error {
 	URLs, _ := h.s.GetTaskURLs(taskIndex)
 
-	// Обработать ОШИБКИ!
-	df, _ := h.svc.DownloadFromURLs(URLs, taskIndex)
-	// if errs != nil {
-	// 	return "", err
-	// }
+	df, errs := h.svc.DownloadFromURLs(URLs, taskIndex)
+	if errs != nil {
+		h.handleErrors(w, errs)
+	}
 
 	err := service.SaveFilesAsZip(df, archivePath)
 	if err != nil {
@@ -97,4 +96,10 @@ func (h *Handler) downloadFiles(w http.ResponseWriter, taskIndex int, archivePat
 	}
 	
 	return nil
+}
+
+func (h *Handler) handleErrors(w http.ResponseWriter, errs []error) {
+	for _, v := range errs {
+		http.Error(w, v.Error(), http.StatusInternalServerError)
+	}
 }

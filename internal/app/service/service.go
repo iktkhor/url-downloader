@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-var allowedExtensions = []string{".jpeg", ".pdf"}
+var allowedExtensions = []string{".jpeg", ".pdf", ".jpg"}
 
 type DownloadedFile struct {
 	Name string
@@ -49,7 +49,7 @@ func (s *Service) DownloadFromURLs(URLs []string, taskIndex int) ([]DownloadedFi
 			defer wg.Done()
 
 			if !isValidFile(filename) {
-				e.AddError(fmt.Errorf("file %s has invalid type", filename))
+				e.AddError(fmt.Errorf("file %s has invalid type\nwrong extension", filename))
 				return
 			}
 
