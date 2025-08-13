@@ -5,8 +5,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path"
+	"strings"
 	"sync"
 )
+
+var allowedExtensions = []string{".jpeg", ".pdf"}
 
 type DownloadedFile struct {
 	Name string
@@ -38,16 +42,23 @@ func (s *Service) DownloadFromURLs(URLs []string, taskIndex int) ([]DownloadedFi
 
 	for i, v := range URLs {
 		wg.Add(1)
-		filename := fmt.Sprintf("task_%d_file_%d.%s", taskIndex + 1, i, "jpeg")
+		ext := strings.ToLower(path.Ext(v))
+		filename := fmt.Sprintf("task_%d_file_%d%s", taskIndex + 1, i, ext)
 
 		go func() {
 			defer wg.Done()
+
+			if !isValidFile(filename) {
+				e.AddError(fmt.Errorf("file %s has invalid type", filename))
+				return
+			}
+
 			data, err := s.downloadFile(v)
 			if err != nil {
 	 			e.AddError(err)
 				return
 			}
-			
+
 			files[i] = DownloadedFile{
 				Name: fmt.Sprint(filename),
 				Data: data,
@@ -55,9 +66,7 @@ func (s *Service) DownloadFromURLs(URLs []string, taskIndex int) ([]DownloadedFi
 		}()
 	}
 
-    fmt.Println("Waiting")
 	wg.Wait()
-    fmt.Println("Done")
 
 	return files, e.errors
 }
@@ -74,32 +83,16 @@ func (s *Service) downloadFile(url string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	//http.Handle("/files/", http.StripPrefix("/files/", http.FileServer(http.Dir("files"))))
+
 	return buf.Bytes(), nil
 }
 
-// createZipFromMemory — архивирует данные из памяти в ZIP
-// func createZipFromMemory(files []DownloadedFile, zipPath string) error {
-// 	var buf bytes.Buffer
-// 	zipWriter := zip.NewWriter(&buf)
-
-// 	for _, file := range files {
-// 		if len(file.Data) == 0 {
-// 			continue // пропускаем пустые (ошибочные) скачивания
-// 		}
-// 		f, err := zipWriter.Create(file.Name)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		_, err = f.Write(file.Data)
-// 		if err != nil {
-// 			return err
-// 		}
-// 	}
-
-// 	if err := zipWriter.Close(); err != nil {
-// 		return err
-// 	}
-
-// 	return os.WriteFile(zipPath, buf.Bytes(), 0644)
-// }
+func isValidFile(filename string) bool {
+	ext := strings.ToLower(path.Ext(filename))
+	for _, allowed := range allowedExtensions {
+		if ext == allowed {
+			return true
+		}
+	}
+	return false
+}

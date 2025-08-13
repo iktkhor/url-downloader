@@ -29,7 +29,7 @@ func New() *App {
 }
 
 func (a *App) Run() error {
-	router := a.h.Router()
+	router := a.h.NewRouter()
 
 	server := http.Server{
 		Addr: ":8080",

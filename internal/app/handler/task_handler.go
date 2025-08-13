@@ -1,12 +1,11 @@
 package handler
 
 import (
-	"archive/zip"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
+	"path/filepath"
 	"strconv"
 
 	"github.com/iktkhor/url-downloader/internal/app/service"
@@ -60,68 +59,42 @@ func (h *Handler) LoadTaskHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
         return
 	}
-	w.Write([]byte("Success! URL added"))
+	w.Write([]byte("Success! URL added\n"))
 
 	if h.s.IsTaskURLsMax(id) {
 		h.s.SetTaskStatus(id, http.StatusProcessing)
-		h.downloadFiles(w, id)
+
+		archiveName := fmt.Sprintf("task_%d_archive.zip", id)
+		archivePath := filepath.Join("files", archiveName)
+
+		err := h.downloadFiles(w, id, archivePath)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	
+		w.Write([]byte(""))
+		fmt.Fprintf(w, "Success! Files added to zip\nURL for downloading: /files/%s", archiveName)
+		
+		fmt.Println(archivePath)
+
 		h.s.SetTaskStatus(id, http.StatusOK)
 	}
 }
 
-func (h *Handler) downloadFiles(w http.ResponseWriter, taskIndex int) {
-	URLs, err := h.s.GetTaskURLs(taskIndex)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	
+func (h *Handler) downloadFiles(w http.ResponseWriter, taskIndex int, archivePath string) error {
+	URLs, _ := h.s.GetTaskURLs(taskIndex)
+
 	// Обработать ОШИБКИ!
-	df, errs := h.svc.DownloadFromURLs(URLs, taskIndex)
-	if errs != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	
-
-	err = service.SaveFilesAsZip(df, fmt.Sprintf("task_%d_archive.zip", taskIndex))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	
-	// // Создаём ZIP в памяти
-	// var buf bytes.Buffer
-	// err = h.writeZip(&buf, df)
-	// if err != nil {
-	// 	http.Error(w, "error writing zip", http.StatusInternalServerError)
-	// 	return
+	df, _ := h.svc.DownloadFromURLs(URLs, taskIndex)
+	// if errs != nil {
+	// 	return "", err
 	// }
 
-	// // Отдаём архив клиенту
-	// w.Header().Set("Content-Type", "application/zip")
-	// w.Header().Set("Content-Disposition", `attachment; filename="images.zip"`)
-	// w.WriteHeader(http.StatusOK)
-	// _, _ = w.Write(buf.Bytes())
-}
-
-func (h *Handler) writeZip(w io.Writer, files []service.DownloadedFile) error {
-	zipWriter := zip.NewWriter(w)
-
-	for _, file := range files {
-		if len(file.Data) == 0 {
-			continue
-		}
-		f, err := zipWriter.Create(file.Name)
-		if err != nil {
-			return err
-		}
-		_, err = f.Write(file.Data)
-		if err != nil {
-			return err
-		}
+	err := service.SaveFilesAsZip(df, archivePath)
+	if err != nil {
+		return err
 	}
-
-	return zipWriter.Close()
+	
+	return nil
 }
